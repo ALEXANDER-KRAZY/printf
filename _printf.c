@@ -2,91 +2,123 @@
 
 
 
+void print_buffer(char buffer[], int *buff_ind);
+
+
+
 /**
- * _printf - prints anything
- * @format: the format string
- * Return: number of bytes printed
+ * _printf - Printf function
+ * @format: format.
+ * Return: Printed chars.
  */
 
 int _printf(const char *format, ...)
 
 {
 
-		int sum = 0;
+		int i, printed = 0, printed_chars = 0;
 
-			va_list ap;
+			int flags, width, precision, size, buff_ind = 0;
 
-				char *p, *start;
+				va_list list;
 
-					params_t params = PARAMS_INIT;
-
-
-
-						va_start(ap, format);
+					char buffer[BUFF_SIZE];
 
 
 
-							if (!format || (format[0] == '%' && !format[1]))
+						if (format == NULL)
 
-										return (-1);
+									return (-1);
 
-								if (format[0] == '%' && format[1] == ' ' && !format[2])
 
-											return (-1);
 
-									for (p = (char *)format; *p; p++)
+							va_start(list, format);
 
-											{
 
-														init_params(&params, ap);
 
-																if (*p != '%')
+								for (i = 0; format && format[i] != '\0'; i++)
 
-																			{
+										{
 
-																							sum += _putchar(*p);
+													if (format[i] != '%')
 
-																										continue;
+																{
+
+																				buffer[buff_ind++] = format[i];
+
+																							if (buff_ind == BUFF_SIZE)
+
+																												print_buffer(buffer, &buff_ind);
+
+																										/* write(1, &format[i], 1);*/
+
+																										printed_chars++;
 
 																												}
 
-																		start = p;
+															else
 
-																				p++;
+																		{
 
-																						while (get_flag(p, &params)) /* while char at p is flag char */
+																						print_buffer(buffer, &buff_ind);
 
-																									{
+																									flags = get_flags(format, &i);
 
-																													p++; /* next char */
+																												width = get_width(format, &i, list);
 
-																															}
+																															precision = get_precision(format, &i, list);
 
-																								p = get_width(p, &params, ap);
+																																		size = get_size(format, &i);
 
-																										p = get_precision(p, &params, ap);
+																																					++i;
 
-																												if (get_modifier(p, &params))
+																																								printed = handle_print(format, &i, list, buffer,
 
-																																p++;
+																																														flags, width, precision, size);
 
-																														if (!get_specifier(p))
+																																											if (printed == -1)
 
-																																		sum += print_from_to(start, p,
+																																																return (-1);
 
-																																								params.l_modifier || params.h_modifier ? p - 1 : 0);
+																																														printed_chars += printed;
 
-																																else
+																																																}
 
-																																				sum += get_print_func(p, ap, &params);
+																}
 
-																																	}
 
-										_putchar(BUF_FLUSH);
 
-											va_end(ap);
+									print_buffer(buffer, &buff_ind);
 
-												return (sum);
+
+
+										va_end(list);
+
+
+
+											return (printed_chars);
+
+}
+
+
+
+/**
+ * print_buffer - Prints the contents of the buffer if it exist
+ * @buffer: Array of chars
+ * @buff_ind: Index at which to add next char, represents the length.
+ */
+
+void print_buffer(char buffer[], int *buff_ind)
+
+{
+
+		if (*buff_ind > 0)
+
+					write(1, &buffer[0], *buff_ind);
+
+
+
+			*buff_ind = 0;
 
 }
 
